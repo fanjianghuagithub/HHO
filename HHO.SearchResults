@@ -1,0 +1,4 @@
+---- ENTER_BT_PAIR_CLR Matches (3 in 1 files) ----
+App_box2.c (apps\box_2):#define ENTER_BT_PAIR_CLR       0xD2
+App_box2.c (apps\box_2):				  case ENTER_BT_PAIR_CLR:
+App_box2.c (apps\box_2):					   BOX_TRACE(8,"---------------------------ENTER_BT_PAIR_CLR-----------------------------------");

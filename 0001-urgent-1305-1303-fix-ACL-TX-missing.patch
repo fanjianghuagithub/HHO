@@ -1,0 +1,89 @@
+From 1d82d7e448e80ca13e166bb44e4ccb4a6100bf6e Mon Sep 17 00:00:00 2001
+From: Leo <junhongliu@bestechnic.com>
+Date: Tue, 17 Aug 2021 12:04:05 +0800
+Subject: [PATCH] [urgent]: 1305/1303 fix ACL TX missing!
+
+1.please update this patch for ALL project.
+
+Change-Id: I64091400c5ecb563ae6c4b43eb7991d895b30736
+(cherry picked from commit ab9d221bd2936a9a30e768e988fbb706c2b67507)
+---
+ platform/drivers/bt/best1305/bt_drv_config.c  | 16 +++++++++++++---
+ platform/drivers/bt/best2300a/bt_drv_config.c | 10 ++++++++++
+ 2 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/platform/drivers/bt/best1305/bt_drv_config.c b/platform/drivers/bt/best1305/bt_drv_config.c
+index 634c4bd31d..110e3cc456 100644
+--- a/platform/drivers/bt/best1305/bt_drv_config.c
++++ b/platform/drivers/bt/best1305/bt_drv_config.c
+@@ -1450,12 +1450,12 @@ void btdrv_digital_config_init_2500i(void)
+ 
+     BTDIGITAL_REG_SET_FIELD(0xd0350320, 0xffff,  0, 0x10);  //fix modulation coefficient : set bit0 to 0 by walker mail 2020/07/31
+     BTDIGITAL_REG_SET_FIELD(0xd0350320, 0xffff, 16, 0x32);
+-#if 0 //test code for bit32 FA 
++#if 0 //test code for bit32 FA
+             // bit[19:16] ble_gsg_dphi_den，4'h0
+-    BTDIGITAL_REG_SET_FIELD(0xd035031C, 0xf, 16,0 ); 
++    BTDIGITAL_REG_SET_FIELD(0xd035031C, 0xf, 16,0 );
+ 
+         // bit[22:16] ble_gsg_dphi_nom,7'h1
+-    BTDIGITAL_REG_SET_FIELD(0xd0350320, 0x7f, 16,1); 
++    BTDIGITAL_REG_SET_FIELD(0xd0350320, 0x7f, 16,1);
+ #endif
+     BTDIGITAL_REG(0xd0350284) |= (1<<9) | (1<<25);
+ 
+@@ -1698,6 +1698,15 @@ void btdrv_config_end(void)
+ #endif
+ }
+ 
++static  void bt_drv_disable_correct_rxwin_after_hec_error(void)
++{
++    /* BT core will send an RF silenced TX packet to correct the position of
++    *  RX window after HEC error occurs.This feature caused the LMP TX missing.
++    *  WARNING !!!!Ensure to disable this function forever!!!
++    */
++    BTDIGITAL_REG_SET_FIELD(0xd02204e8, 1, 31, 0);
++}
++
+ extern void bt_drv_reg_op_controller_mem_log_config(void);
+ void btdrv_config_init(void)
+ {
+@@ -1794,6 +1803,7 @@ void btdrv_config_init(void)
+ #ifdef __EBQ_TEST__
+     bt_drv_reg_op_ebq_test_setting();
+ #endif
++    bt_drv_disable_correct_rxwin_after_hec_error();
+ }
+ 
+ bool btdrv_is_ecc_enable(void)
+diff --git a/platform/drivers/bt/best2300a/bt_drv_config.c b/platform/drivers/bt/best2300a/bt_drv_config.c
+index 8636ff6c3c..f29b426200 100644
+--- a/platform/drivers/bt/best2300a/bt_drv_config.c
++++ b/platform/drivers/bt/best2300a/bt_drv_config.c
+@@ -1635,6 +1635,15 @@ void btdrv_config_end(void)
+ #endif
+ }
+ 
++static void bt_drv_disable_correct_rxwin_after_hec_error(void)
++{
++    /* BT core will send an RF silenced TX packet to correct the position of
++    *  RX window after HEC error occurs.This feature caused the LMP TX missing.
++    *  WARNING !!!!Ensure to disable this function forever!!!
++    */
++    BTDIGITAL_REG_SET_FIELD(0xd02204e8, 1, 31, 0);
++}
++
+ extern void bt_drv_reg_op_controller_mem_log_config(void);
+ void btdrv_config_init(void)
+ {
+@@ -1723,6 +1732,7 @@ void btdrv_config_init(void)
+ #ifdef __EBQ_TEST__
+     bt_drv_reg_op_ebq_test_setting();
+ #endif
++    bt_drv_disable_correct_rxwin_after_hec_error();
+ }
+ 
+ bool btdrv_is_ecc_enable(void)
+-- 
+2.17.1
+

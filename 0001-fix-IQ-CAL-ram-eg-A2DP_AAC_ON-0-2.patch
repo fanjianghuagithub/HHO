@@ -1,0 +1,58 @@
+From 02474eed9dabb2ba8e1b6d60f7c134a2eaa2c81c Mon Sep 17 00:00:00 2001
+From: biaozhang <biaozhang@bestechnic.com>
+Date: Thu, 5 Aug 2021 22:17:54 +0800
+Subject: [PATCH] fix IQ CAL ram , eg A2DP_AAC_ON=0 (2)
+
+Change-Id: I22325a6b73da2f1d7f64dd20e6b7e4ecbb3b1d43
+(cherry picked from commit 900e978c9495fb3aef334eb61d295146bc6fbeff)
+---
+ platform/drivers/bt/best1305/iqcorrect.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/platform/drivers/bt/best1305/iqcorrect.c b/platform/drivers/bt/best1305/iqcorrect.c
+index acf5825272..363eb34d3b 100644
+--- a/platform/drivers/bt/best1305/iqcorrect.c
++++ b/platform/drivers/bt/best1305/iqcorrect.c
+@@ -1084,7 +1084,7 @@ extern uint8_t __cp_mem_pool_start__[];
+ extern uint8_t __cp_mem_pool_end__[];
+ #endif
+ extern uint8_t __overlay_text_start__[];
+-//extern uint8_t __fast_sram_end__[];
++extern uint8_t __overlay_text_exec_end__[];
+ extern uint8_t __overlay_data_end__[];
+ void bt_IQ_DC_Mismatch_Correction_Release()
+ {
+@@ -1098,8 +1098,10 @@ void bt_IQ_DC_Mismatch_Correction_Release()
+     int chs = 27;
+     IQMismatchPreprocessState *st = NULL;
+     int64_t more_need_buf = MED_MEM_POOL_SIZE;  
+-    int64_t overlay_text_buf = (&__overlay_data_end__[0]-&__overlay_text_start__[0]);
+-    TRACE_IMM(2,"%p %p",&__overlay_data_end__[0],&__overlay_text_start__[0]);
++    int64_t overlay_text_buf = (RAMX_TO_RAM(&__overlay_text_exec_end__[0])-&__overlay_text_start__[0]);
++    //RAM_TO_RAMX
++    //RAMX_TO_RAM
++    TRACE_IMM(2,"%p %p ",&__overlay_text_exec_end__[0],&__overlay_text_start__[0]);
+     syspool_init();
+ 
+     #if defined(CHIP_HAS_CP) && (RAMCP_SIZE > 0)
+@@ -1118,7 +1120,7 @@ void bt_IQ_DC_Mismatch_Correction_Release()
+         TRACE_IMM(1,"@%d",__LINE__);
+         //TRACE_IMM(2, "more need buf =%d %ld",more_need_buf,overlay_text_buf);
+         more_need_buf =more_need_buf-overlay_text_buf+2048;
+-        TRACE_IMM(1, "more need buf =%lld",more_need_buf);
++        TRACE_IMM(1, "more need buf =%d",(int)more_need_buf);
+         med_heap_init(&__overlay_text_start__[0], overlay_text_buf);  
+         syspool_get_buff(&g_medMemPool, more_need_buf);
+         med_heap_add_block(g_medMemPool,more_need_buf);
+@@ -1544,7 +1546,7 @@ void bt_IQ_DC_Mismatch_Correction_Release_rx()
+     int fftsize;
+     IQState_rx *st = NULL;
+     uint32_t more_need_buf = MED_MEM_POOL_SIZE;  
+-    uint32_t overlay_text_buf = (&__overlay_data_end__[0]-&__overlay_text_start__[0]);
++    uint32_t overlay_text_buf = (RAMX_TO_RAM(&__overlay_text_exec_end__[0])-&__overlay_text_start__[0]);
+     syspool_init();
+ 
+     #if defined(CHIP_HAS_CP) && (RAMCP_SIZE > 0)
+-- 
+2.17.1
+
